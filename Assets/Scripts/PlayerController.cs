@@ -13,10 +13,7 @@ public class PlayerController : MonoBehaviour
 	public int JumpForce = 10;
 	public int Gravity = 20;
 
-	public Text ScoreText;
-	public GameObject HintText;
-
-	public UnityEvent DeadEvent;
+	public UnityEvent DeathEvent;
 
 	private Rigidbody _rigidbody;
 	private Animator _animator;
@@ -24,124 +21,37 @@ public class PlayerController : MonoBehaviour
 
 	private Vector2 _touchPos;
 
-	private float _xPos = 0;
-
-	private const float _xStep = 2f;
-
-	private const float _maxX = _xStep;
-	private const float _minX = -_maxX;
+	private float _dashDirection = 0;
+	private Vector3 _dashDistancePass = Vector3.zero;
+	private float _dashTarget = 0;
+	private const float _dashDistance = 2f;
 
 	private bool _grounded = true;
 	private bool _jump = false;
-
-	private bool _dead = false;
-
-	private bool _start = false;
-
-	private float _score = 0;
-	private int _goldCount = 0;
-
-	private Vector3 _cameraOffset;
+	private bool _startRun = false;
+	//--------------------------------------------------------------------------
 
 	private void Awake()
 	{
 		_rigidbody = GetComponent<Rigidbody>();
 		_animator = GetComponent<Animator>();
-
-		ScoreText.text = _score.ToString();
-
-		_cameraOffset = Camera.transform.position;
 	}
+	//--------------------------------------------------------------------------
 
 	private void Update()
 	{
-		if (_dead)
-			return;
+		PlayerControl();
 
-		if (Input.GetMouseButtonDown(0))
-		{
-			if (_start)
-			{
-				_touchPos = Input.mousePosition;
-			}
-			else
-			{
-				_start = true;
-				_animator.SetBool("Start", true);
-				HintText.SetActive(false);
-			}
-		}
-
-		if (Input.GetMouseButtonUp(0) && _touchPos != Vector2.zero)
-		{
-			//Mouse move distance must be >= than 1% of screen size
-			float mouseXMoveDistance = Mathf.Abs(_touchPos.x - Input.mousePosition.x);
-			mouseXMoveDistance = (mouseXMoveDistance > 0) ? mouseXMoveDistance / Screen.width : 0;
-
-			float mouseYMoveDistance = Mathf.Abs(_touchPos.y - Input.mousePosition.y);
-			mouseYMoveDistance = (mouseYMoveDistance > 0) ? mouseYMoveDistance / Screen.height : 0;
-
-			if (mouseXMoveDistance > mouseYMoveDistance && mouseXMoveDistance >= 0.1f)
-			{
-				if (_touchPos.x < Input.mousePosition.x && _xPos + _xStep <= _maxX)
-				{
-					// Move right
-					_xPos += _xStep;
-				}
-				else if (_touchPos.x > Input.mousePosition.x && _xPos - _xStep >= _minX)
-				{
-					// Move left
-					_xPos -= _xStep;
-				}
-			}
-			else if (mouseYMoveDistance >= 0.1f)
-			{
-				if (_touchPos.y < Input.mousePosition.y && _grounded)
-				{
-					//Jump
-					_animator.SetBool("Jump", true);
-					_jump = true;
-				}
-			}
-		}
+		if (transform.position.y < -5)
+			Die();
 	}
+	//--------------------------------------------------------------------------
 
 	private void FixedUpdate()
 	{
 		Run();
-
-		UpdateScore();
-
-		UpdateCamera();
-
-		if (_jump & _grounded)
-		{
-			_velocity.y = JumpForce;
-			_grounded = false;
-		}
-		else if (!_grounded)
-		{
-			_velocity.y -= Gravity * Time.deltaTime;
-		}
-
-		_rigidbody.velocity = _velocity;
-
 	}
-
-	private void UpdateScore()
-	{
-		if (!_start || _dead)
-			return;
-
-		_score += Time.deltaTime * (_goldCount * 0.1f + 1);
-		ScoreText.text = Mathf.RoundToInt(_score).ToString();
-	}
-
-	//Move camera ignoring Y-Axis
-	private void UpdateCamera()
-	{
-		Camera.transform.position = new Vector3(transform.position.x + _cameraOffset.x, _cameraOffset.y, transform.position.z + _cameraOffset.z);
-	}
+	//--------------------------------------------------------------------------
 
 	private void OnCollisionEnter(Collision other)
 	{
@@ -155,47 +65,106 @@ public class PlayerController : MonoBehaviour
 
 		if (other.gameObject.CompareTag("Enemy"))
 		{
-			Dead();
+			Die();
 		}
 	}
+	//--------------------------------------------------------------------------
 
-	private void OnTriggerEnter(Collider other)
+	private void PlayerControl()
 	{
-		if (other.CompareTag("Gold"))
+		if (Input.GetMouseButtonDown(0))
 		{
-			Destroy(other.gameObject);
-			++_goldCount;
+			if (_startRun)
+			{
+				_touchPos = Input.mousePosition;
+			}
+			else
+			{
+				_startRun = true;
+				_animator.SetBool("Start", true);
+			}
 		}
 
-		if (other.CompareTag("Finish"))
+		if (Input.GetMouseButtonUp(0) && _touchPos != Vector2.zero)
 		{
-			OnRestart();
+			//Mouse move distance must be >= than 1% of screen size
+			float mouseXMoveDistance = Mathf.Abs(_touchPos.x - Input.mousePosition.x);
+			mouseXMoveDistance = (mouseXMoveDistance > 0) ? mouseXMoveDistance / Screen.width : 0;
+
+			float mouseYMoveDistance = Mathf.Abs(_touchPos.y - Input.mousePosition.y);
+			mouseYMoveDistance = (mouseYMoveDistance > 0) ? mouseYMoveDistance / Screen.height : 0;
+
+			if (mouseXMoveDistance > mouseYMoveDistance && mouseXMoveDistance >= 0.1f && _dashDirection == 0)
+			{
+				if (_touchPos.x < Input.mousePosition.x && _dashTarget + _dashDistance <= _dashDistance)
+				{
+					// Move right
+					_dashDirection = 1;
+					_dashTarget += _dashDistance;
+				}
+				else if (_touchPos.x > Input.mousePosition.x && _dashTarget - _dashDistance >= -_dashDistance)
+				{
+					// Move left
+					_dashDirection = -1;
+					_dashTarget -= _dashDistance;
+				}
+			}
+			else if (mouseYMoveDistance >= 0.1f)
+			{
+				if (_touchPos.y < Input.mousePosition.y && _grounded)
+				{
+					//Jump
+					_animator.SetBool("Jump", true);
+					_jump = true;
+				}
+			}
 		}
 	}
+	//--------------------------------------------------------------------------
 
 	private void Run()
 	{
-		if (_dead || !_start)
+		if (!_startRun)
 			return;
 
-		Vector3 newPos = Vector3.MoveTowards(new Vector3(transform.position.x, 0, 0), new Vector3(_xPos, 0, 0), Time.deltaTime * 10);
+		HandleDash();
 
-		transform.position = new Vector3(newPos.x, transform.position.y, transform.position.z);
+		Vector3 forward_velocity = transform.forward * Time.deltaTime * Speed;
+		_velocity = new Vector3(forward_velocity.x, _velocity.y, forward_velocity.z);
 
-		_velocity.z = Time.deltaTime * Speed;
+		if (_jump & _grounded)
+		{
+			_velocity.y = JumpForce;
+			_grounded = false;
+		}
+		else if (!_grounded)
+		{
+			_velocity.y -= Gravity * Time.deltaTime;
+		}
+
+		_rigidbody.velocity = _velocity;
 	}
+	//--------------------------------------------------------------------------
 
-	private void Dead()
+	private void HandleDash()
 	{
-		_dead = true;
-		_animator.SetBool("Dead", _dead);
-		_velocity.z = 0;
+		Vector3 distance = transform.right * _dashDirection * Time.deltaTime * 10;
+		transform.position += distance;
 
-		DeadEvent.Invoke();
+		_dashDistancePass += distance;
+		if (Vector3.Distance(_dashDistancePass, transform.right * _dashTarget) <= 0.1f)
+			_dashDirection = 0;
 	}
+	//--------------------------------------------------------------------------
 
-	public void OnRestart()
+	private void Die()
 	{
-		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+		_animator.SetBool("Dead", true);
+		_rigidbody.velocity = Vector3.zero;
+
+		DeathEvent.Invoke();
+
+		Destroy(this);
 	}
+	//--------------------------------------------------------------------------
 }
