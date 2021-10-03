@@ -109,13 +109,17 @@ public class PlayerController : MonoBehaviour
 					_dashTarget -= _dashDistance;
 				}
 			}
-			else if (mouseYMoveDistance >= 0.1f)
+			else if (mouseYMoveDistance >= 0.1f && _grounded)
 			{
-				if (_touchPos.y < Input.mousePosition.y && _grounded)
+				if (_touchPos.y < Input.mousePosition.y)
 				{
 					//Jump
 					_animator.SetBool("Jump", true);
 					_jump = true;
+				}
+				else
+				{
+					_animator.SetTrigger("Roll");
 				}
 			}
 		}

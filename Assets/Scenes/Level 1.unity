@@ -265,6 +265,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 271665876}
   m_CullTransparentMesh: 1
+--- !u!1 &495675540 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6488747333725557082, guid: f197505acabd75240ac796154841bd58, type: 3}
+  m_PrefabInstance: {fileID: 6603055903377169025}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &495675542
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495675540}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1.14, y: 0.3, z: 0.35}
+  m_Center: {x: -0.21, y: 0, z: 0}
 --- !u!1 &591393154
 GameObject:
   m_ObjectHideFlags: 0
@@ -826,6 +844,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4491202a3ab9084fbfb45b42b6e7932, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1945230611 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6489455081814300268, guid: f197505acabd75240ac796154841bd58, type: 3}
+  m_PrefabInstance: {fileID: 6603055903377169025}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1945230613
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1945230611}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.9, y: 0.35, z: 0.2}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!4 &2046825564 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6486715549996936774, guid: f197505acabd75240ac796154841bd58, type: 3}
@@ -983,6 +1019,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 6488019505549728629, guid: f197505acabd75240ac796154841bd58, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6488019505549728631, guid: f197505acabd75240ac796154841bd58, type: 3}
       propertyPath: Camera
       value: 
@@ -999,5 +1039,6 @@ PrefabInstance:
       propertyPath: DeathEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 271665876}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6488019505549728629, guid: f197505acabd75240ac796154841bd58, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: f197505acabd75240ac796154841bd58, type: 3}
