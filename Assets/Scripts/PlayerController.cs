@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
+// Control player by user
 public class PlayerController : MonoBehaviour
 {
 	public Camera Camera;
@@ -26,20 +23,26 @@ public class PlayerController : MonoBehaviour
 	private float _dashTarget = 0;
 	private const float _dashDistance = 2f;
 
+	// Center of the platform
 	private Vector3 _normalizePos = Vector3.zero;
 
+	// Rotate player
 	private float _newAngle = 0;
 
 	private bool _grounded = true;
 	private bool _jump = false;
 	private bool _onRotatePlatform = false;
 	private bool _startRun = false;
+
+	private CameraController _cameraController;
 	//--------------------------------------------------------------------------
 
 	private void Awake()
 	{
 		_rigidbody = GetComponent<Rigidbody>();
 		_animator = GetComponent<Animator>();
+
+		_cameraController = Camera.main.GetComponent<CameraController>();
 	}
 	//--------------------------------------------------------------------------
 
@@ -55,6 +58,13 @@ public class PlayerController : MonoBehaviour
 	private void FixedUpdate()
 	{
 		Run();
+
+		_grounded = false;
+		RaycastHit hit;
+		if (Physics.Raycast(transform.position, Vector3.down, out hit, 1, ~LayerMask.NameToLayer("Ground")))
+		{
+			_grounded = true;
+		}
 	}
 	//--------------------------------------------------------------------------
 
@@ -63,9 +73,7 @@ public class PlayerController : MonoBehaviour
 		if (other.gameObject.layer == LayerMask.NameToLayer("Ground"))
 		{
 			_jump = false;
-			_grounded = true;
 			_velocity.y = 0;
-			_animator.SetBool("Jump", false);
 		}
 
 		if (other.gameObject.CompareTag("Enemy"))
@@ -133,7 +141,7 @@ public class PlayerController : MonoBehaviour
 				if (_touchPos.y < Input.mousePosition.y)
 				{
 					//Jump
-					_animator.SetBool("Jump", true);
+					_animator.SetTrigger("Jump");
 					_jump = true;
 				}
 				else
@@ -164,6 +172,8 @@ public class PlayerController : MonoBehaviour
 			_onRotatePlatform = false;
 
 			transform.position = new Vector3(_normalizePos.x, transform.position.y, _normalizePos.z);
+
+			_cameraController.Rotate(_newAngle);
 		}
 		else
 		{
@@ -193,14 +203,17 @@ public class PlayerController : MonoBehaviour
 		Vector3 forward_velocity = transform.forward * Time.deltaTime * Speed;
 		_velocity = new Vector3(forward_velocity.x, _velocity.y, forward_velocity.z);
 
-		if (_jump & _grounded)
+		float smoothTime = Time.deltaTime * 2;
+
+		if (_jump)
 		{
-			_velocity.y = JumpForce;
-			_grounded = false;
+			_velocity = Vector3.SmoothDamp(_velocity, new Vector3(_velocity.x, JumpForce, _velocity.z), ref _velocity, smoothTime);
+			if (_velocity.y >= JumpForce)
+				_jump = false;
 		}
 		else if (!_grounded)
 		{
-			_velocity.y -= Gravity * Time.deltaTime;
+			_velocity.y = -Gravity;
 		}
 
 		_rigidbody.velocity = _velocity;
@@ -214,9 +227,7 @@ public class PlayerController : MonoBehaviour
 
 		_dashDistancePass += distance;
 		if (Vector3.Distance(_dashDistancePass, transform.right * _dashTarget) <= 0.1f)
-		{
 			_dashDirection = 0;
-		}
 
 		transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, _newAngle, 0), Time.deltaTime * 30);
 		if (transform.rotation != Quaternion.Euler(0, _newAngle, 0))
@@ -227,8 +238,9 @@ public class PlayerController : MonoBehaviour
 	private void Die()
 	{
 		_animator.SetBool("Dead", true);
-		_rigidbody.velocity = Vector3.zero;
-
+		_velocity = Vector3.zero;
+		_velocity.y = -Gravity;
+		_rigidbody.velocity = _velocity;
 		DeathEvent.Invoke();
 
 		Destroy(this);

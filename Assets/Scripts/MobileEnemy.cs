@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MobileEnemy : MonoBehaviour
@@ -62,7 +60,7 @@ public class MobileEnemy : MonoBehaviour
 		{
 			_destroyed = true;
 			_rigidbody.velocity = Vector3.zero;
-			 
+
 			_animator.enabled = false;
 			GetComponent<Collider>().enabled = false;
 			GetComponent<MeshRenderer>().enabled = false;
