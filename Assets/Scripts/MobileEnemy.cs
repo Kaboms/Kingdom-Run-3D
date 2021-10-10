@@ -56,7 +56,7 @@ public class MobileEnemy : MonoBehaviour
 
 	private void OnCollisionEnter(Collision other)
 	{
-		if (!other.gameObject.CompareTag("Ground"))
+		if (other.gameObject.layer != LayerMask.NameToLayer("Ground"))
 		{
 			_destroyed = true;
 			_rigidbody.velocity = Vector3.zero;

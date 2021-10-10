@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.kaboms.core-features": {
+      "version": "https://github.com/Kaboms/CoreFeatures.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "51386cedc2ac5a7e90b13ff1827ce0180782ec75"
+    },
     "com.unity.collab-proxy": {
       "version": "1.7.1",
       "depth": 0,
